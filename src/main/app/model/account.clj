@@ -21,9 +21,7 @@
   {;;GIVEN nothing (e.g. this is usable as a root query)
    ;; I can output all accounts. NOTE: only ID is needed...other resolvers resolve the rest
    ::pc/output [{:all-accounts [:account/id]}]}
-  {:all-accounts (mapv
-                   (fn [id] {:account/id id})
-                   (all-account-ids db))})
+  {:all-accounts (mapv (fn [id] {:account/id id}) (all-account-ids db))})
 
 (>defn get-account [db id subquery]
   [any? uuid? vector? => (? map?)]
@@ -31,7 +29,7 @@
 
 (defresolver account-resolver [{:keys [db] :as env} {:account/keys [id]}]
   {::pc/input  #{:account/id}
-   ::pc/output [:account/email :account/active?]}
-  (get-account db id [:account/email :account/active?]))
+   ::pc/output [:account/email :account/active? :account/name]}
+  (get-account db id [:account/email :account/active? :account/name]))
 
 (def resolvers [all-users-resolver account-resolver])

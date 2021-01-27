@@ -13,7 +13,9 @@
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
     [com.fulcrologic.fulcro-css.css :as css]
     [com.fulcrologic.fulcro.algorithms.form-state :as fs]
-    [taoensso.timbre :as log]))
+    [taoensso.timbre :as log]
+    [app.ui.components.accounts-list :as accounts-list]
+    [com.fulcrologic.fulcro.data-fetch :as df]))
 
 (defn field [{:keys [label valid? error-message] :as props}]
   (let [input-props (-> props (assoc :name label) (dissoc :label :valid? :error-message))]
@@ -135,17 +137,33 @@
 
 (def ui-login (comp/factory Login))
 
-(defsc Main [this props]
-  {:query         [:main/welcome-message]
-   :initial-state {:main/welcome-message "Hi!"}
+(defsc AccountsContainer
+  [this {:accounts/keys [accounts]}]
+  {:query [:component/id {:accounts/accounts (comp/get-query accounts-list/AccountsList)}]
+   :initial-state (fn [_] {:accounts/accounts
+                           (comp/get-initial-state accounts-list/AccountsList {:id :accounts})})
+   :ident (fn [] [:component/id :accounts])}
+  (dom/div
+   (accounts-list/accounts-list accounts)))
+
+(def accounts-container (comp/factory AccountsContainer))
+
+(defsc Main [this {:main/keys [all-accounts] :as props}]
+  {:query         [:main/welcome-message
+                   {:main/all-accounts (comp/get-query accounts-list/AccountsList)}]
    :ident         (fn [] [:component/id :main])
-   :route-segment ["main"]}
-  (div :.ui.container.segment
-    (h3 "Main")
-    (p (str "Welcome to the Fulcro template. "
-         "The Sign up and login functionalities are partially implemented, "
-         "but mostly this is just a blank slate waiting "
-         "for your project."))))
+   :initial-state (fn [_]
+                    {:main/all-accounts
+                     (comp/get-initial-state accounts-list/AccountsList {:id :accounts})})
+   :route-segment ["main"]
+   :componentDidMount (fn [this]
+                        (df/load! this :all-accounts accounts-list/AccountListItem {:target [:list/id :accounts :list/accounts]}))}
+  (let []
+    (println "PROPS" all-accounts)
+    (div :.ui.container.segment
+         (h3 "Accounts List")
+         (dom/ul
+          (accounts-list/accounts-list all-accounts)))))
 
 (defsc Settings [this {:keys [:account/time-zone :account/real-name] :as props}]
   {:query         [:account/time-zone :account/real-name :account/crap]

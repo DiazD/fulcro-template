@@ -11,6 +11,7 @@
     [app.server-components.config :refer [config]]
     [app.model.mock-database :as db]))
 
+;; resolver for the visualizer on fulcro-inspect
 (pc/defresolver index-explorer [env _]
   {::pc/input  #{:com.wsscode.pathom.viz.index-explorer/id}
    ::pc/output [:com.wsscode.pathom.viz.index-explorer/index]}
