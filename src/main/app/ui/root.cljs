@@ -148,22 +148,21 @@
 
 (def accounts-container (comp/factory AccountsContainer))
 
-(defsc Main [this {:main/keys [all-accounts] :as props}]
+(defsc Main [this {:main/keys [accounts] :as props}]
   {:query         [:main/welcome-message
-                   {:main/all-accounts (comp/get-query accounts-list/AccountsList)}]
+                   {:main/accounts (comp/get-query AccountsContainer)}]
    :ident         (fn [] [:component/id :main])
    :initial-state (fn [_]
-                    {:main/all-accounts
-                     (comp/get-initial-state accounts-list/AccountsList {:id :accounts})})
+                    {:main/accounts
+                     (comp/get-initial-state AccountsContainer {:id :accounts})})
    :route-segment ["main"]
    :componentDidMount (fn [this]
                         (df/load! this :all-accounts accounts-list/AccountListItem {:target [:list/id :accounts :list/accounts]}))}
   (let []
-    (println "PROPS" all-accounts)
     (div :.ui.container.segment
          (h3 "Accounts List")
          (dom/ul
-          (accounts-list/accounts-list all-accounts)))))
+          (accounts-container accounts)))))
 
 (defsc Settings [this {:keys [:account/time-zone :account/real-name] :as props}]
   {:query         [:account/time-zone :account/real-name :account/crap]
