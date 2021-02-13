@@ -3,32 +3,39 @@
     [taoensso.timbre :as log]
     [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
-    [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
+    [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]
+    [com.fulcrologic.fulcro.algorithms.form-state :as fs]
+    [app.ui.components.accounts-list :refer [AccountItemForm]]))
 
-(defn user-path
-  "Normalized path to a user entity or field in Fulcro state-map"
-  ([id field] [:account/id id field])
-  ([id] [:account/id id]))
-
-(defn insert-user*
-  "Insert a user into the correct table of the Fulcro state-map database."
-  [state-map {:keys [:account/id] :as user}]
-  (assoc-in state-map (user-path id) user))
-
-(defmutation upsert-user
-  "Client Mutation: Upsert a user (full-stack. see CLJ version for server-side)."
-  [{:keys [:account/id :account/name] :as params}]
+;; form-state mutation
+(defmutation edit-account [{:keys [account-id]}]
   (action [{:keys [state]}]
-    (log/info "Upsert user action")
-    (swap! state (fn [s]
+          (swap! state
+                 (fn [s]
                    (-> s
-                     (insert-user* params)
-                     (merge/integrate-ident* [:account/id id] :append [:all-accounts])))))
-  (ok-action [env]
-    (log/info "OK action"))
-  (error-action [env]
-    (log/info "Error action"))
-  (remote [env]
-    (-> env
-      (m/returning 'app.ui.root/User)
-      (m/with-target (targeting/append-to [:all-accounts])))))
+                       (fs/add-form-config*
+                        AccountItemForm
+                        [:account/id account-id])
+                       (fs/pristine->entity* [:account/id account-id])
+                       (fs/mark-complete* [:account/id account-id])
+                       (assoc-in [:account/id account-id :account/editing?] true))))))
+
+(defmutation cancel-account-edit [{:keys [account-id]}]
+  (action [{:keys [state]}]
+          (swap! state
+                 (fn [s]
+                   (-> s
+                       (assoc-in [:account/id account-id :account/editing?] false)
+                       (fs/pristine->entity* [:account/id account-id]))))))
+
+;; TODO: Make a mutation for submission
+;; currently doesn't work -- dirty-fields are returning empty-map
+(defmutation submit-account-changes [{:keys [account-id delta]}]
+  (action [{:keys [state]}]
+          (swap! state
+                 (fn [s]
+                   (-> s
+                       (assoc-in [:account/id account-id :account/editing?] false)
+                       (fs/pristine->entity* [:account/id account-id])))))
+  (remote [env] true)
+  (refresh [env] [:account/id account-id]))

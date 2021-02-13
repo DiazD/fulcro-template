@@ -60,6 +60,10 @@
   (-> SPA ::app/runtime-atom deref ::app/indexes)
   (comp/class->any SPA root/Root)
   (let [s (app/current-state SPA)]
-    (fdn/db->tree [{[:component/id :login] [:ui/open? :ui/error :account/email
-                                            {[:root/current-session '_] (comp/get-query root/Session)}
-                                            [::uism/asm-id ::session/session]]}] {} s)))
+    (fdn/db->tree
+     [{[:component/id :login] [:ui/open?
+                               :ui/error
+                               :account/email
+                               {[:root/current-session '_]
+                                (comp/get-query root/Session)}
+                               [::uism/asm-id ::session/session]]}] {} s)))

@@ -1,6 +1,7 @@
 (ns app.ui.root
   (:require
-    [app.model.session :as session]
+   [app.model.session :as session]
+   [app.model.account]
     [clojure.string :as str]
     [com.fulcrologic.fulcro.dom :as dom :refer [div ul li p h3 button b]]
     [com.fulcrologic.fulcro.dom.html-entities :as ent]
